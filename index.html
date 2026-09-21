@@ -3,193 +3,277 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Universo de Flores Amarillas 🌻</title>
+    <title>Universo para Ti 🌻💛</title>
     <style>
         body {
             margin: 0;
             overflow: hidden;
-            background-color: #020205;
+            background-color: #000000;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            touch-action: none; /* Previene el scroll nativo */
+            touch-action: none;
         }
         #ui {
             position: absolute;
-            top: 20px;
+            top: 50px;
             width: 100%;
             text-align: center;
             z-index: 10;
             pointer-events: none;
+            transition: opacity 2s ease-in-out;
         }
         h1 {
-            color: #ffcc00;
-            font-size: 2rem;
+            color: #ffffff;
+            font-size: 2.5rem;
             margin: 0;
-            text-shadow: 0 0 15px #ffcc00, 0 0 30px #ff8800;
+            text-shadow: 0 0 20px #ffcc00, 0 0 40px #ff8800;
+            letter-spacing: 2px;
         }
         p {
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 0.9rem;
-            margin-top: 5px;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1rem;
+            margin-top: 10px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        /* Un pequeño overlay para darle un toque más cinematográfico */
+        #vignette {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at center, transparent 40%, rgba(0,0,0,0.8) 100%);
+            pointer-events: none;
+            z-index: 5;
         }
     </style>
 </head>
 <body>
 
+    <div id="vignette"></div>
     <div id="ui">
-        <h1>Feliz día de las Flores Amarillas</h1>
-        <p>Gira la galaxia con un dedo. Pellizca para acercar.</p>
+        <h1>MI UNIVERSO</h1>
+        <p>Explora con tus dedos</p>
     </div>
 
-    <!-- Importar Three.js y OrbitControls desde CDN -->
+    <!-- Librerías Core de Three.js (Nivel Profesional) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    
+    <!-- Librerías de Post-Procesamiento (El secreto del brillo cinematográfico) -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
 
     <script>
-        // 1. CONFIGURACIÓN BASE 3D
+        // 1. CONFIGURACIÓN DEL MOTOR 3D
         const scene = new THREE.Scene();
-        // Fondo del espacio
-        scene.background = new THREE.Color(0x020205);
+        scene.fog = new THREE.FogExp2(0x000000, 0.015); // Niebla espacial para dar profundidad
 
-        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.set(0, 15, 35); // Posición inicial de la cámara
+        const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 20, 50);
 
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(window.devicePixelRatio); // Texturas nítidas en móviles
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Optimizado para móviles gama alta
+        renderer.toneMapping = THREE.ReinhardToneMapping; // Mapeo de tonos realista
         document.body.appendChild(renderer.domElement);
 
-        // 2. CONTROLES DE CÁMARA (Navegación 3D profesional)
+        // 2. CONTROLES DE CÁMARA (Suavidad extrema)
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
-        controls.enableDamping = true; // Movimiento suave con inercia
-        controls.dampingFactor = 0.05;
-        controls.enablePan = false; // Evita que se salga del centro
-        controls.minDistance = 10; // Límite de zoom in
-        controls.maxDistance = 100; // Límite de zoom out
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.03; // Más inercia, se siente más pesado y premium
+        controls.maxDistance = 120;
+        controls.minDistance = 5;
+        controls.maxPolarAngle = Math.PI / 1.2; // Evita ver la galaxia totalmente desde abajo
 
-        // 3. ESTRELLAS DE FONDO (Sistema de partículas 3D)
-        const starsGeometry = new THREE.BufferGeometry();
-        const starsMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 0.1 });
-        const starsVertices = [];
-        for (let i = 0; i < 2000; i++) {
-            const x = THREE.MathUtils.randFloatSpread(200);
-            const y = THREE.MathUtils.randFloatSpread(200);
-            const z = THREE.MathUtils.randFloatSpread(200);
-            starsVertices.push(x, y, z);
+        // 3. POST-PROCESAMIENTO (BLOOM / RESPLANDOR)
+        const renderScene = new THREE.RenderPass(scene, camera);
+        // Parámetros Bloom: Resolución, Fuerza, Radio, Umbral
+        const bloomPass = new THREE.UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 2.0, 0.5, 0.1);
+        
+        const composer = new THREE.EffectComposer(renderer);
+        composer.addPass(renderScene);
+        composer.addPass(bloomPass);
+
+        // 4. GENERADORES DE TEXTURAS PROCEDURALES (Carga ultrarrápida, sin imágenes externas)
+        function createParticleTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 32; canvas.height = 32;
+            const ctx = canvas.getContext('2d');
+            const gradient = ctx.createRadialGradient(16, 16, 0, 16, 16, 16);
+            gradient.addColorStop(0, 'rgba(255,255,255,1)');
+            gradient.addColorStop(0.2, 'rgba(255,200,50,0.8)');
+            gradient.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, 32, 32);
+            return new THREE.CanvasTexture(canvas);
         }
-        starsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starsVertices, 3));
-        const starField = new THREE.Points(starsGeometry, starsMaterial);
-        scene.add(starField);
 
-        // 4. SOL CENTRAL (Esfera amarilla brillante)
-        const sunGeometry = new THREE.SphereGeometry(3, 32, 32);
-        const sunMaterial = new THREE.MeshBasicMaterial({ color: 0xffcc00 });
+        function createHighResText(text, isEmoji = false) {
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = 1024; // Ultra HD
+            canvas.height = 256;
+            
+            context.font = isEmoji ? "bold 120px sans-serif" : "bold 80px 'Segoe UI', sans-serif";
+            context.textAlign = "center";
+            context.textBaseline = "middle";
+            context.fillStyle = isEmoji ? "#ffffff" : "#ffdd44";
+            
+            // Sombra interna para el Bloom
+            context.shadowColor = "#ff5500";
+            context.shadowBlur = 20;
+            
+            context.fillText(text, canvas.width / 2, canvas.height / 2);
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.needsUpdate = true;
+            return texture;
+        }
+
+        const particleTex = createParticleTexture();
+
+        // 5. EL SOL CENTRAL (Núcleo Supermasivo)
+        const sunGeometry = new THREE.SphereGeometry(4, 64, 64);
+        const sunMaterial = new THREE.MeshBasicMaterial({ color: 0xffaa00 });
         const sun = new THREE.Mesh(sunGeometry, sunMaterial);
         scene.add(sun);
 
-        // Crear un resplandor (Glow) usando un Sprite detrás del sol
-        const glowCanvas = document.createElement('canvas');
-        glowCanvas.width = 128; glowCanvas.height = 128;
-        const glowCtx = glowCanvas.getContext('2d');
-        const glowGradient = glowCtx.createRadialGradient(64, 64, 0, 64, 64, 64);
-        glowGradient.addColorStop(0, 'rgba(255, 204, 0, 1)');
-        glowGradient.addColorStop(0.4, 'rgba(255, 136, 0, 0.5)');
-        glowGradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
-        glowCtx.fillStyle = glowGradient;
-        glowCtx.fillRect(0, 0, 128, 128);
-        const glowTexture = new THREE.CanvasTexture(glowCanvas);
-        const glowMaterial = new THREE.SpriteMaterial({ map: glowTexture, blending: THREE.AdditiveBlending, transparent: true });
-        const sunGlow = new THREE.Sprite(glowMaterial);
-        sunGlow.scale.set(12, 12, 1);
-        scene.add(sunGlow);
+        // Capa de plasma del sol
+        const plasmaGeometry = new THREE.SphereGeometry(4.5, 32, 32);
+        const plasmaMaterial = new THREE.MeshBasicMaterial({ 
+            color: 0xff4400, transparent: true, opacity: 0.3, blending: THREE.AdditiveBlending 
+        });
+        const plasma = new THREE.Mesh(plasmaGeometry, plasmaMaterial);
+        scene.add(plasma);
 
-        // 5. SISTEMA DE ANILLOS (Textos y Flores)
-        const ringsGroup = new THREE.Group();
-        scene.add(ringsGroup);
+        // 6. NEBULOSA Y POLVO ESTELAR (10,000 partículas en anillos)
+        const dustGeometry = new THREE.BufferGeometry();
+        const dustCount = 10000;
+        const dustPos = new Float32Array(dustCount * 3);
+        const dustColors = new Float32Array(dustCount * 3);
+        const colorBase = new THREE.Color(0xffaa00);
 
-        // Función para crear textos nítidos en 3D
-        function createTextSprite(text, isEmoji = false) {
-            const canvas = document.createElement('canvas');
-            const context = canvas.getContext('2d');
-            canvas.width = 512;
-            canvas.height = 128;
-            
-            context.font = isEmoji ? "bold 60px sans-serif" : "bold 40px 'Segoe UI', Tahoma, sans-serif";
-            context.textAlign = "center";
-            context.textBaseline = "middle";
-            
-            // Sombra para que resalte
-            context.shadowColor = "#ff8800";
-            context.shadowBlur = isEmoji ? 15 : 10;
-            context.fillStyle = isEmoji ? "#ffffff" : "#ffeaa0";
-            
-            context.fillText(text, canvas.width / 2, canvas.height / 2);
-            
-            const texture = new THREE.CanvasTexture(canvas);
-            const material = new THREE.SpriteMaterial({ map: texture, transparent: true });
-            const sprite = new THREE.Sprite(material);
-            
-            // Ajustar escala para que no se vea estirado
-            sprite.scale.set(12, 3, 1);
-            return sprite;
+        for(let i=0; i < dustCount; i++) {
+            // Distribución en forma de galaxia elíptica
+            const r = 10 + Math.random() * 60;
+            const theta = Math.random() * Math.PI * 2;
+            const y = (Math.random() - 0.5) * (Math.random() * 8); // Más grueso en el centro
+
+            dustPos[i*3] = r * Math.cos(theta);
+            dustPos[i*3+1] = y;
+            dustPos[i*3+2] = r * Math.sin(theta);
+
+            // Variación de colores (amarillo, naranja, blanco)
+            const mixedColor = colorBase.clone().lerp(new THREE.Color(Math.random() > 0.5 ? 0xffffff : 0xff3300), Math.random());
+            dustColors[i*3] = mixedColor.r;
+            dustColors[i*3+1] = mixedColor.g;
+            dustColors[i*3+2] = mixedColor.b;
         }
 
+        dustGeometry.setAttribute('position', new THREE.BufferAttribute(dustPos, 3));
+        dustGeometry.setAttribute('color', new THREE.BufferAttribute(dustColors, 3));
+
+        const dustMaterial = new THREE.PointsMaterial({
+            size: 0.4,
+            map: particleTex,
+            vertexColors: true,
+            blending: THREE.AdditiveBlending,
+            transparent: true,
+            depthWrite: false
+        });
+
+        const galaxyDust = new THREE.Points(dustGeometry, dustMaterial);
+        // Inclinación dramática del plano galáctico
+        galaxyDust.rotation.x = Math.PI / 8;
+        scene.add(galaxyDust);
+
+        // 7. ELEMENTOS FLOTANTES (Letras y Flores)
         const phrases = [
-            "Eres mi favorita", "Luz en mi vida", "Sonríe siempre", 
-            "Un detalle amarillo", "Pura magia", "Te quiero", 
-            "Mi universo", "Siempre brillas", "Atesoro tu compañía"
+            "Eres mi flor favorita", "Luz en mi vida", "Pura magia", 
+            "Un detalle amarillo", "Sonríe siempre", "Atesoro tu compañía", 
+            "Siempre brillas", "Te amo"
         ];
+        
+        const floatingObjects = []; // Guardamos referencia para animarlos individualmente
+        const systemGroup = new THREE.Group();
+        systemGroup.rotation.x = Math.PI / 8; // Mismo ángulo que el polvo
+        scene.add(systemGroup);
 
-        // Anillo interno: Flores
-        const radius1 = 9;
-        for (let i = 0; i < 12; i++) {
-            const angle = (i / 12) * Math.PI * 2;
-            const sprite = createTextSprite("🌻", true);
-            sprite.position.set(Math.cos(angle) * radius1, Math.sin(angle * 2) * 1.5, Math.sin(angle) * radius1);
-            ringsGroup.add(sprite);
+        function addFloatingSprite(text, isEmoji, radius, yOffset, speed) {
+            const material = new THREE.SpriteMaterial({ 
+                map: createHighResText(text, isEmoji), 
+                transparent: true,
+                blending: THREE.AdditiveBlending 
+            });
+            const sprite = new THREE.Sprite(material);
+            // Escalar según si es texto o emoji para que se lea perfecto
+            sprite.scale.set(isEmoji ? 8 : 20, isEmoji ? 8 : 5, 1);
+            
+            // Ángulo inicial aleatorio
+            const angle = Math.random() * Math.PI * 2;
+            sprite.position.set(Math.cos(angle) * radius, yOffset, Math.sin(angle) * radius);
+            
+            systemGroup.add(sprite);
+            
+            // Guardar datos para la animación (flotación independiente)
+            floatingObjects.push({
+                mesh: sprite,
+                angle: angle,
+                radius: radius,
+                speed: speed,
+                yBase: yOffset,
+                phase: Math.random() * Math.PI * 2 // Fase para el bobbing arriba/abajo
+            });
         }
 
-        // Anillo medio: Textos románticos
-        const radius2 = 15;
-        for (let i = 0; i < phrases.length; i++) {
-            const angle = (i / phrases.length) * Math.PI * 2;
-            const sprite = createTextSprite(phrases[i], false);
-            // Inclinación ligera en el eje Y para darle volumen al anillo
-            sprite.position.set(Math.cos(angle) * radius2, Math.cos(angle * 3) * 2, Math.sin(angle) * radius2);
-            ringsGroup.add(sprite);
+        // Crear las órbitas de flores y mensajes
+        for(let i=0; i<25; i++) {
+            addFloatingSprite("🌻", true, 15 + Math.random()*15, (Math.random()-0.5)*4, 0.002 + Math.random()*0.002);
+            addFloatingSprite("✨", true, 20 + Math.random()*25, (Math.random()-0.5)*6, 0.001 + Math.random()*0.002);
         }
+        phrases.forEach(phrase => {
+            addFloatingSprite(phrase, false, 25 + Math.random()*20, (Math.random()-0.5)*2, 0.0015);
+        });
 
-        // Anillo externo: Mezcla de estrellas, corazones y flores
-        const radius3 = 22;
-        const mix = ["✨", "💛", "🌻", "🌟", "💐"];
-        for (let i = 0; i < 18; i++) {
-            const angle = (i / 18) * Math.PI * 2;
-            const item = mix[i % mix.length];
-            const sprite = createTextSprite(item, true);
-            sprite.position.set(Math.cos(angle) * radius3, Math.sin(angle * 4) * 3, Math.sin(angle) * radius3);
-            ringsGroup.add(sprite);
-        }
+        // Ocultar UI después de 4 segundos
+        setTimeout(() => {
+            document.getElementById('ui').style.opacity = '0';
+        }, 4000);
 
-        // Inclinación inicial del sistema de anillos
-        ringsGroup.rotation.x = Math.PI / 6; 
+        // 8. BUCLE DE ANIMACIÓN PROFESIONAL
+        const clock = new THREE.Clock();
 
-        // 6. REDIMENSIONAMIENTO RESPONSIVO
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
+            composer.setSize(window.innerWidth, window.innerHeight);
         });
 
-        // 7. BUCLE DE ANIMACIÓN
         function animate() {
             requestAnimationFrame(animate);
+            const time = clock.getElapsedTime();
+
+            // Rotación general
+            galaxyDust.rotation.y = time * 0.05;
+            plasma.rotation.y = time * 0.2;
+            plasma.scale.setScalar(1 + Math.sin(time * 2) * 0.05); // Latido del sol
+
+            // Físicas independientes de cada flor/frase
+            floatingObjects.forEach(obj => {
+                // Órbita
+                obj.angle += obj.speed;
+                obj.mesh.position.x = Math.cos(obj.angle) * obj.radius;
+                obj.mesh.position.z = Math.sin(obj.angle) * obj.radius;
+                // Flotación arriba/abajo (Bobbing)
+                obj.mesh.position.y = obj.yBase + Math.sin(time * 2 + obj.phase) * 1.5;
+            });
+
+            controls.update(); // Necesario para la inercia (damping)
             
-            // Rotación automática muy lenta y elegante de la galaxia
-            ringsGroup.rotation.y -= 0.002;
-            
-            // Actualizar controles (necesario para el damping/inercia)
-            controls.update();
-            
-            renderer.render(scene, camera);
+            // Usar composer para aplicar el resplandor Bloom en lugar de renderer normal
+            composer.render();
         }
 
         animate();
