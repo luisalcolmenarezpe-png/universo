@@ -2,287 +2,197 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tu Galaxia de Flores Amarillas 🌻</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Universo de Flores Amarillas 🌻</title>
     <style>
         body {
             margin: 0;
-            padding: 0;
-            background-color: #050510;
-            color: white;
+            overflow: hidden;
+            background-color: #020205;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            overflow: hidden; /* Evita que la pantalla baje o suba */
-            touch-action: none; /* Desactiva gestos nativos para poder girar la galaxia */
+            touch-action: none; /* Previene el scroll nativo */
         }
-
-        #ui-container {
+        #ui {
             position: absolute;
-            top: 0;
-            left: 0;
+            top: 20px;
             width: 100%;
-            height: 100%;
-            pointer-events: none; /* Deja pasar los toques al canvas */
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            align-items: center;
-            padding: 30px 0;
-            box-sizing: border-box;
+            text-align: center;
             z-index: 10;
+            pointer-events: none;
         }
-
         h1 {
-            text-align: center;
-            font-size: 2.2rem;
             color: #ffcc00;
-            text-shadow: 0 0 15px #ffcc00, 0 0 30px #ff9900;
+            font-size: 2rem;
             margin: 0;
+            text-shadow: 0 0 15px #ffcc00, 0 0 30px #ff8800;
         }
-
-        .instructions {
-            background: rgba(0, 0, 0, 0.6);
-            padding: 10px 20px;
-            border-radius: 20px;
+        p {
+            color: rgba(255, 255, 255, 0.7);
             font-size: 0.9rem;
-            color: #ddd;
-            border: 1px solid #ffcc0055;
-            text-align: center;
-        }
-
-        canvas {
-            display: block;
-            width: 100vw;
-            height: 100vh;
+            margin-top: 5px;
         }
     </style>
 </head>
 <body>
 
-    <div id="ui-container">
-        <h1>Feliz día de las<br>Flores Amarillas 🌻</h1>
-        <div class="instructions">
-            👆 Desliza para mover la galaxia<br>🔍 Pellizca para acercar o alejar
-        </div>
+    <div id="ui">
+        <h1>Feliz día de las Flores Amarillas</h1>
+        <p>Gira la galaxia con un dedo. Pellizca para acercar.</p>
     </div>
 
-    <canvas id="galaxy"></canvas>
+    <!-- Importar Three.js y OrbitControls desde CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
     <script>
-        const canvas = document.getElementById('galaxy');
-        const ctx = canvas.getContext('2d');
+        // 1. CONFIGURACIÓN BASE 3D
+        const scene = new THREE.Scene();
+        // Fondo del espacio
+        scene.background = new THREE.Color(0x020205);
 
-        let width, height;
-        let centerX, centerY;
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 15, 35); // Posición inicial de la cámara
 
-        function resize() {
-            width = window.innerWidth;
-            height = window.innerHeight;
-            canvas.width = width;
-            canvas.height = height;
-            centerX = width / 2;
-            centerY = height / 2;
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio); // Texturas nítidas en móviles
+        document.body.appendChild(renderer.domElement);
+
+        // 2. CONTROLES DE CÁMARA (Navegación 3D profesional)
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true; // Movimiento suave con inercia
+        controls.dampingFactor = 0.05;
+        controls.enablePan = false; // Evita que se salga del centro
+        controls.minDistance = 10; // Límite de zoom in
+        controls.maxDistance = 100; // Límite de zoom out
+
+        // 3. ESTRELLAS DE FONDO (Sistema de partículas 3D)
+        const starsGeometry = new THREE.BufferGeometry();
+        const starsMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 0.1 });
+        const starsVertices = [];
+        for (let i = 0; i < 2000; i++) {
+            const x = THREE.MathUtils.randFloatSpread(200);
+            const y = THREE.MathUtils.randFloatSpread(200);
+            const z = THREE.MathUtils.randFloatSpread(200);
+            starsVertices.push(x, y, z);
         }
-        window.addEventListener('resize', resize);
-        resize();
+        starsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starsVertices, 3));
+        const starField = new THREE.Points(starsGeometry, starsMaterial);
+        scene.add(starField);
 
-        // --- PARÁMETROS DE LA GALAXIA ---
-        const particles = [];
-        const numParticles = 400; // ¡Cientos de elementos!
-        const frases = [
+        // 4. SOL CENTRAL (Esfera amarilla brillante)
+        const sunGeometry = new THREE.SphereGeometry(3, 32, 32);
+        const sunMaterial = new THREE.MeshBasicMaterial({ color: 0xffcc00 });
+        const sun = new THREE.Mesh(sunGeometry, sunMaterial);
+        scene.add(sun);
+
+        // Crear un resplandor (Glow) usando un Sprite detrás del sol
+        const glowCanvas = document.createElement('canvas');
+        glowCanvas.width = 128; glowCanvas.height = 128;
+        const glowCtx = glowCanvas.getContext('2d');
+        const glowGradient = glowCtx.createRadialGradient(64, 64, 0, 64, 64, 64);
+        glowGradient.addColorStop(0, 'rgba(255, 204, 0, 1)');
+        glowGradient.addColorStop(0.4, 'rgba(255, 136, 0, 0.5)');
+        glowGradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        glowCtx.fillStyle = glowGradient;
+        glowCtx.fillRect(0, 0, 128, 128);
+        const glowTexture = new THREE.CanvasTexture(glowCanvas);
+        const glowMaterial = new THREE.SpriteMaterial({ map: glowTexture, blending: THREE.AdditiveBlending, transparent: true });
+        const sunGlow = new THREE.Sprite(glowMaterial);
+        sunGlow.scale.set(12, 12, 1);
+        scene.add(sunGlow);
+
+        // 5. SISTEMA DE ANILLOS (Textos y Flores)
+        const ringsGroup = new THREE.Group();
+        scene.add(ringsGroup);
+
+        // Función para crear textos nítidos en 3D
+        function createTextSprite(text, isEmoji = false) {
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = 512;
+            canvas.height = 128;
+            
+            context.font = isEmoji ? "bold 60px sans-serif" : "bold 40px 'Segoe UI', Tahoma, sans-serif";
+            context.textAlign = "center";
+            context.textBaseline = "middle";
+            
+            // Sombra para que resalte
+            context.shadowColor = "#ff8800";
+            context.shadowBlur = isEmoji ? 15 : 10;
+            context.fillStyle = isEmoji ? "#ffffff" : "#ffeaa0";
+            
+            context.fillText(text, canvas.width / 2, canvas.height / 2);
+            
+            const texture = new THREE.CanvasTexture(canvas);
+            const material = new THREE.SpriteMaterial({ map: texture, transparent: true });
+            const sprite = new THREE.Sprite(material);
+            
+            // Ajustar escala para que no se vea estirado
+            sprite.scale.set(12, 3, 1);
+            return sprite;
+        }
+
+        const phrases = [
             "Eres mi favorita", "Luz en mi vida", "Sonríe siempre", 
             "Un detalle amarillo", "Pura magia", "Te quiero", 
-            "Mi universo", "Brillas", "Mi sol", "Siempre tú"
+            "Mi universo", "Siempre brillas", "Atesoro tu compañía"
         ];
-        const emojis = ["🌻", "🌻", "🌻", "🌼", "✨", "💛", "🌟"];
 
-        // Variables de cámara e interacción
-        let zoom = 1.2;
-        let pitch = 60 * Math.PI / 180; // Inclinación inicial
-        let yaw = 0; // Rotación de cámara
-        let autoRotateSpeed = 0.002;
-        let time = 0;
-
-        // Crear las partículas (flores y frases)
-        for (let i = 0; i < numParticles; i++) {
-            let isText = Math.random() > 0.75; // 25% frases, 75% flores/estrellas
-            
-            particles.push({
-                angle: Math.random() * Math.PI * 2, // Posición en el círculo
-                radius: 80 + Math.random() * 600, // Distancia desde el centro (tamaño de galaxia)
-                yOffset: (Math.random() - 0.5) * 60, // Grosor de la galaxia
-                speed: (Math.random() * 0.003 + 0.001) * (Math.random() > 0.5 ? 1 : -1), // Velocidades y direcciones distintas
-                isText: isText,
-                content: isText ? frases[Math.floor(Math.random() * frases.length)] : emojis[Math.floor(Math.random() * emojis.length)],
-                size: isText ? (12 + Math.random() * 6) : (16 + Math.random() * 20)
-            });
+        // Anillo interno: Flores
+        const radius1 = 9;
+        for (let i = 0; i < 12; i++) {
+            const angle = (i / 12) * Math.PI * 2;
+            const sprite = createTextSprite("🌻", true);
+            sprite.position.set(Math.cos(angle) * radius1, Math.sin(angle * 2) * 1.5, Math.sin(angle) * radius1);
+            ringsGroup.add(sprite);
         }
 
-        // --- INTERACCIÓN (TÁCTIL Y MOUSE) ---
-        let isDragging = false;
-        let lastX = 0;
-        let lastY = 0;
-        let initialPinchDistance = null;
-
-        // Soporte para Mouse
-        canvas.addEventListener('mousedown', e => { isDragging = true; lastX = e.clientX; lastY = e.clientY; });
-        canvas.addEventListener('mouseup', () => { isDragging = false; });
-        canvas.addEventListener('mousemove', e => {
-            if (isDragging) {
-                let dx = e.clientX - lastX;
-                let dy = e.clientY - lastY;
-                yaw += dx * 0.01;   // Cambia la dirección al deslizar horizontalmente
-                pitch -= dy * 0.01; // Cambia la inclinación al deslizar verticalmente
-                
-                // Limitar la inclinación para que no se voltee por completo
-                pitch = Math.max(0.1, Math.min(pitch, Math.PI - 0.1));
-                lastX = e.clientX;
-                lastY = e.clientY;
-            }
-        });
-        canvas.addEventListener('wheel', e => {
-            zoom -= e.deltaY * 0.002;
-            zoom = Math.max(0.3, Math.min(zoom, 4)); // Limitar zoom
-        });
-
-        // Soporte para Celular (Touch)
-        canvas.addEventListener('touchstart', e => {
-            if (e.touches.length === 1) {
-                isDragging = true;
-                lastX = e.touches[0].clientX;
-                lastY = e.touches[0].clientY;
-            } else if (e.touches.length === 2) {
-                // Iniciar zoom por pellizco
-                initialPinchDistance = Math.hypot(
-                    e.touches[0].clientX - e.touches[1].clientX,
-                    e.touches[0].clientY - e.touches[1].clientY
-                );
-            }
-        });
-        canvas.addEventListener('touchend', e => {
-            isDragging = false;
-            initialPinchDistance = null;
-        });
-        canvas.addEventListener('touchmove', e => {
-            if (e.touches.length === 1 && isDragging) {
-                let dx = e.touches[0].clientX - lastX;
-                let dy = e.touches[0].clientY - lastY;
-                
-                yaw += dx * 0.008; // Arrastrar cambia la rotación
-                pitch -= dy * 0.008;
-                pitch = Math.max(0.1, Math.min(pitch, Math.PI - 0.1));
-                
-                lastX = e.touches[0].clientX;
-                lastY = e.touches[0].clientY;
-            } else if (e.touches.length === 2 && initialPinchDistance) {
-                // Hacer zoom (pellizcar)
-                let currentDistance = Math.hypot(
-                    e.touches[0].clientX - e.touches[1].clientX,
-                    e.touches[0].clientY - e.touches[1].clientY
-                );
-                let diff = currentDistance - initialPinchDistance;
-                zoom += diff * 0.005;
-                zoom = Math.max(0.3, Math.min(zoom, 5));
-                initialPinchDistance = currentDistance;
-            }
-        });
-
-        // --- BUCLE DE ANIMACIÓN ---
-        function draw() {
-            ctx.fillStyle = '#050510';
-            ctx.fillRect(0, 0, width, height);
-
-            time += autoRotateSpeed;
-
-            let projectedParticles = [];
-
-            // 1. Calcular posiciones 3D
-            particles.forEach(p => {
-                // Rotación orbital propia
-                let currentAngle = p.angle + time * (p.speed * 100);
-                
-                // Coordenadas base en 3D
-                let x = Math.cos(currentAngle) * p.radius;
-                let z = Math.sin(currentAngle) * p.radius;
-                let y = p.yOffset;
-
-                // Aplicar rotación de la cámara (Yaw - horizontal)
-                let x1 = x * Math.cos(yaw) - z * Math.sin(yaw);
-                let z1 = x * Math.sin(yaw) + z * Math.cos(yaw);
-
-                // Aplicar inclinación de la cámara (Pitch - vertical)
-                let y2 = y * Math.cos(pitch) - z1 * Math.sin(pitch);
-                let z2 = y * Math.sin(pitch) + z1 * Math.cos(pitch);
-
-                // Proyección a 2D (Perspectiva)
-                let focalLength = 800;
-                let scale = focalLength / (focalLength + z2);
-
-                if (scale > 0) { // Solo si está frente a la cámara
-                    projectedParticles.push({
-                        screenX: centerX + x1 * scale * zoom,
-                        screenY: centerY + y2 * scale * zoom,
-                        scale: scale * zoom,
-                        depth: z2, // Guardamos la profundidad para ordenarlos
-                        content: p.content,
-                        isText: p.isText,
-                        baseSize: p.size
-                    });
-                }
-            });
-
-            // 2. ORDENAR POR PROFUNDIDAD (Z-Index real)
-            // Esto soluciona que las cosas de atrás tapen a las de adelante
-            projectedParticles.sort((a, b) => b.depth - a.depth);
-
-            // 3. Dibujar Sol Central
-            let sunScale = (800 / (800 + 0)) * zoom; // Centro está en z=0
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, 40 * sunScale, 0, Math.PI * 2);
-            let gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, 40 * sunScale);
-            gradient.addColorStop(0, '#ffffdd');
-            gradient.addColorStop(0.3, '#ffcc00');
-            gradient.addColorStop(1, 'transparent');
-            ctx.fillStyle = gradient;
-            ctx.fill();
-            
-            // Resplandor del sol
-            ctx.shadowBlur = 50 * sunScale;
-            ctx.shadowColor = '#ff8800';
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, 20 * sunScale, 0, Math.PI * 2);
-            ctx.fillStyle = '#ffcc00';
-            ctx.fill();
-            ctx.shadowBlur = 0; // Apagar resplandor para el resto
-
-            // 4. Dibujar Flores y Textos
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-
-            projectedParticles.forEach(p => {
-                let finalSize = p.baseSize * p.scale;
-                
-                // Si se aleja mucho y se hace muy pequeño, no lo dibujamos para optimizar
-                if (finalSize < 2) return; 
-
-                ctx.font = `bold ${finalSize}px 'Segoe UI', sans-serif`;
-                
-                if (p.isText) {
-                    // Sombra para los textos para que resalten
-                    ctx.fillStyle = '#ffeaa0';
-                    ctx.shadowBlur = 4;
-                    ctx.shadowColor = '#000000';
-                    ctx.fillText(p.content, p.screenX, p.screenY);
-                    ctx.shadowBlur = 0;
-                } else {
-                    // Flores
-                    ctx.fillText(p.content, p.screenX, p.screenY);
-                }
-            });
-
-            requestAnimationFrame(draw);
+        // Anillo medio: Textos románticos
+        const radius2 = 15;
+        for (let i = 0; i < phrases.length; i++) {
+            const angle = (i / phrases.length) * Math.PI * 2;
+            const sprite = createTextSprite(phrases[i], false);
+            // Inclinación ligera en el eje Y para darle volumen al anillo
+            sprite.position.set(Math.cos(angle) * radius2, Math.cos(angle * 3) * 2, Math.sin(angle) * radius2);
+            ringsGroup.add(sprite);
         }
 
-        draw();
+        // Anillo externo: Mezcla de estrellas, corazones y flores
+        const radius3 = 22;
+        const mix = ["✨", "💛", "🌻", "🌟", "💐"];
+        for (let i = 0; i < 18; i++) {
+            const angle = (i / 18) * Math.PI * 2;
+            const item = mix[i % mix.length];
+            const sprite = createTextSprite(item, true);
+            sprite.position.set(Math.cos(angle) * radius3, Math.sin(angle * 4) * 3, Math.sin(angle) * radius3);
+            ringsGroup.add(sprite);
+        }
+
+        // Inclinación inicial del sistema de anillos
+        ringsGroup.rotation.x = Math.PI / 6; 
+
+        // 6. REDIMENSIONAMIENTO RESPONSIVO
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // 7. BUCLE DE ANIMACIÓN
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            // Rotación automática muy lenta y elegante de la galaxia
+            ringsGroup.rotation.y -= 0.002;
+            
+            // Actualizar controles (necesario para el damping/inercia)
+            controls.update();
+            
+            renderer.render(scene, camera);
+        }
+
+        animate();
     </script>
 </body>
 </html>
