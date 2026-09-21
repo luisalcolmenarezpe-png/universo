@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Universo: un espacio para explorar, aprender y soñar.">
+  <title>Universo</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #070b1f;
+      --text: #f7f8ff;
+      --muted: #b8c0e8;
+      --accent: #8b5cf6;
+      --accent-2: #22d3ee;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(139, 92, 246, .25), transparent 28rem),
+        radial-gradient(circle at 80% 10%, rgba(34, 211, 238, .18), transparent 24rem),
+        var(--bg);
+    }
+
+    .container {
+      width: min(1100px, calc(100% - 2rem));
+      margin: 0 auto;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.25rem 0;
+    }
+
+    .logo {
+      color: var(--text);
+      font-size: 1.25rem;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-decoration: none;
+      text-transform: uppercase;
+    }
+
+    nav a {
+      margin-left: 1rem;
+      color: var(--muted);
+      text-decoration: none;
+    }
+
+    nav a:hover { color: var(--text); }
+
+    main {
+      display: grid;
+      min-height: calc(100vh - 90px);
+      place-items: center;
+      padding: 4rem 0 6rem;
+      text-align: center;
+    }
+
+    .hero { max-width: 760px; }
+
+    .eyebrow {
+      color: var(--accent-2);
+      font-size: .85rem;
+      font-weight: 700;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 1rem 0;
+      font-size: clamp(3.5rem, 12vw, 8rem);
+      line-height: .95;
+      letter-spacing: -.07em;
+      background: linear-gradient(120deg, #fff, #c4b5fd 45%, #67e8f9);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    p {
+      margin: 0 auto 2rem;
+      max-width: 600px;
+      color: var(--muted);
+      font-size: 1.15rem;
+      line-height: 1.7;
+    }
+
+    .buttons {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: .9rem;
+    }
+
+    .button {
+      display: inline-block;
+      padding: .85rem 1.25rem;
+      border: 1px solid rgba(255, 255, 255, .2);
+      border-radius: 999px;
+      color: var(--text);
+      text-decoration: none;
+      transition: transform .2s ease, background .2s ease;
+    }
+
+    .button:hover { transform: translateY(-2px); }
+
+    .primary {
+      border-color: transparent;
+      background: linear-gradient(135deg, var(--accent), #6366f1);
+    }
+
+    footer {
+      padding: 1.5rem 0;
+      color: #8992bd;
+      font-size: .9rem;
+      text-align: center;
+    }
+
+    @media (max-width: 600px) {
+      header { align-items: flex-start; }
+      nav a { display: inline-block; margin-left: .5rem; font-size: .9rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <a class="logo" href="./">✦ Universo</a>
+      <nav aria-label="Navegación principal">
+        <a href="#inicio">Inicio</a>
+        <a href="https://github.com/luisalcolmenarezpe-png/universo" target="_blank" rel="noopener">GitHub</a>
+      </nav>
+    </header>
+
+    <main id="inicio">
+      <section class="hero">
+        <div class="eyebrow">Bienvenido a tu espacio</div>
+        <h1>Explora el universo.</h1>
+        <p>
+          Un punto de partida para crear, descubrir y compartir ideas que van más allá de lo conocido.
+        </p>
+        <div class="buttons">
+          <a class="button primary" href="https://github.com/luisalcolmenarezpe-png/universo" target="_blank" rel="noopener">Ver proyecto en GitHub</a>
+          <a class="button" href="mailto:contacto@example.com">Contactar</a>
+        </div>
+      </section>
+    </main>
+
+    <footer>Hecho con curiosidad · Universo</footer>
+  </div>
+</body>
+</html>
